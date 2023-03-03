@@ -10,10 +10,10 @@ typedef struct {
     char nome[100];
 }clienteRegistro;
 
-typedef struct {
+typedef struct no{
     void ** ponteiros;
     int * chaves;
-    struct node * pai;
+    struct no * pai;
     bool eFolha;
     int qtdChaves;
     char id_pag[20];
@@ -40,7 +40,7 @@ int ordem = ORDEM;
     usado para imprimir a árvore começando da raíz, imprimindo cada nível em linhas separadas
     terminando nas folhas.
 */
-no* fila = NULL;
+no * fila = NULL;
 
 
 // imprimir árvore
@@ -90,6 +90,93 @@ void imprimirFolhas( no * raiz ) {
 	}
 	printf("\n");
 }
+
+// imprime árvore cada nível por linha, com as chaves de cada nó e | separando-os.
+void imprimirArvore( no * raiz ) {
+
+	no * n = NULL;
+	int i = 0;
+	int pagina = 0;
+	int novaPagina = 0;
+
+	if (raiz == NULL) {
+		printf("Árvore vazia.\n");
+		return;
+	}
+	fila = NULL;
+	enfileirar(raiz);
+	while( fila != NULL ) {
+		n = tirarDaFila();
+		if (n->pai != NULL && n == n->pai->ponteiros[0]) {
+			novaPagina = path_to_root( raiz, n );
+			if (novaPagina != pagina) {
+				pagina = novaPagina;
+				printf("\n");
+			}
+		}
+		for (i = 0; i < n->qtdChaves; i++) {
+			printf("%d ", n->chaves[i]);
+		}
+		if (!n->eFolha)
+			for (i = 0; i <= n->qtdChaves; i++)
+				enfileirar(n->ponteiros[i]);
+		printf("| ");
+	}
+	printf("\n");
+}
+
+//  mostra caminho da raíz até a folha, procurando pela chave. retorna folha da chave
+no * achaFolha( no * raiz, int chave) {
+	int i = 0;
+	no * c = raiz;
+	if (c == NULL) { 
+        printf("Árvore vazia.\n");
+		return c;
+	}
+	while (!c->eFolha) {
+        printf("[");
+        for (i = 0; i < c->qtdChaves - 1; i++)
+            printf("%d ", c->chaves[i]);
+        printf("%d] ", c->chaves[i]);
+		i = 0;
+		while (i < c->qtdChaves) {
+			if (chave >= c->chaves[i]) i++;
+			else break;
+		}
+		c = (no *)c->ponteiros[i];
+    }
+    printf("Folha [");
+    for (i = 0; i < c->qtdChaves - 1; i++)
+        printf("%d ", c->chaves[i]);
+    printf("%d] ->\n", c->chaves[i]);
+	return c;
+}
+
+
+
+// procura e retorna o registro dada determinada chave
+clienteRegistro * busca( no * raiz, int chave) {
+	int i = 0;
+	no * c = achaFolha( raiz, chave);
+	if (c == NULL) return NULL;
+	for (i = 0; i < c->qtdChaves; i++)
+		if (c->chaves[i] == chave) break;
+	if (i == c->qtdChaves) 
+		return NULL;
+	else
+		return (clienteRegistro *)c->ponteiros[i];
+}
+// acha o registro de dada chave e imprime
+void buscaImprime(no * raiz, int chave) {
+	clienteRegistro * r = busca(raiz, chave);
+	if (r == NULL)
+		printf("Registro não encontrado com chave %d.\n", chave);
+	else 
+		printf("Registro na %lx -- chave %d, value %d.\n",
+		                (chave, r->codCliente));
+}
+
+
 
 int main (void) {
     FILE *pontArq;
